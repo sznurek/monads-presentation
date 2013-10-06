@@ -118,8 +118,10 @@ bind f (x,s) =
     -> (Float -> (Float,String))
 
 f * g = \x -> bind g (f x)
--- f . g = \x -> g (f x)
 \end{verbatim}
+\pause
+
+\texttt{f . g = \char`\\x -> g (f x)}
 \end{frame}
 
 \begin{frame}{A identyczność?}
@@ -169,6 +171,7 @@ f * g = \x -> bind g (f x)
         \item \texttt{g' :: Float -> (Float,String)}
         \pause
         \item \texttt{unit . f :: Float -> (Float,String)}
+        \item \texttt{unit . f * g'}
     \end{itemize}
 \end{frame}
 
@@ -179,7 +182,7 @@ lift :: (Float -> Float)
      -> (Float -> (Float,String))
 lift f = unit . f
 
--- lift f * lift g = lift (f . g)
+lift f * lift g = lift (f . g)
 \end{verbatim}
 \end{frame}
 
