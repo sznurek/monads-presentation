@@ -7,7 +7,7 @@
 \usefonttheme{professionalfonts}
 \setbeamertemplate{navigation symbols}{}
 
-\title[Monady]{Monady, monady, monady}
+\title{Monady}
 \subtitle{Krótki wstęp}
 \author{Łukasz Dąbek}
 
@@ -118,6 +118,7 @@ bind f (x,s) =
     -> (Float -> (Float,String))
 
 f * g = \x -> bind g (f x)
+-- f . g = \x -> g (f x)
 \end{verbatim}
 \end{frame}
 
@@ -161,8 +162,35 @@ f * g = \x -> bind g (f x)
     \end{itemize}
 \end{frame}
 
+\begin{frame}{Funkcje niedebugowalne}
+    \begin{itemize}
+        \item Jak składać funkcje debugowalne ze zwykłymi?
+        \item \texttt{f  :: Float -> Float}
+        \item \texttt{g' :: Float -> (Float,String)}
+        \pause
+        \item \texttt{unit . f :: Float -> (Float,String)}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Lift}
+\begin{verbatim}
+lift :: (Float -> Float)
+     -> (Float -> (Float,String))
+lift f = unit . f
+
+-- lift f * lift g = lift (f . g)
+\end{verbatim}
+\end{frame}
+
 \begin{frame}{Checkpoint}
-    Pierwsza monada za nami! \emph{Pytania?}
+    \begin{itemize}
+        \item Pierwsza monada za nami!
+        \item Znana jako \texttt{Writer monad} (patrz: \texttt{Control.Monad.Writer}).
+        \item Jeszcze do niej wrócimy.
+        \pause
+        \item Pytania?
+    \end{itemize}
 \end{frame}
 
 \end{document}
