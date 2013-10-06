@@ -51,7 +51,7 @@
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Funkcje debugowalne (2)}
+\begin{frame}{Funkcje debugowalne}
     \texttt{f, g :: Float -> Float}
     \pause
 
@@ -60,7 +60,7 @@
     \texttt{g x = x + 2}
 \end{frame}
 
-\begin{frame}{Funkcje debugowalne (2)}
+\begin{frame}{Funkcje debugowalne}
     \texttt{f', g' :: Float -> (Float, \emph{String})}
     \pause
 
@@ -69,7 +69,7 @@
     \texttt{g' x = (x + 2, "g " ++ show x)}
 \end{frame}
 
-\begin{frame}{Funkcje debugowalne - kompozycja}
+\begin{frame}{Kompozycja}
     \begin{itemize}
         \item Chcemy prześledzić wykonanie złożenia funkcji \texttt{f'}
             i \texttt{g'}.
@@ -79,14 +79,14 @@
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Funkcje debugowalne - kompozycja}
+\frametitle{Kompozycja}
 \begin{verbatim}
 let (y, s) = g' x
     (z, t) = f' y in (z, s ++ t)
 \end{verbatim}
 \end{frame}
 
-\begin{frame}{Funkcje debugowalne - kompozycja}
+\begin{frame}{Kompozycja}
     \begin{itemize}
         \item Nie chcemy pisać tego kodu wielokrotnie.
         \item \texttt{bind f' :: (Float,String) -> (Float,String)}
@@ -94,7 +94,7 @@ let (y, s) = g' x
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Funkcje debugowalne - bind}
+\frametitle{Bind}
 \begin{verbatim}
 bind :: (Float -> (Float,String))
      -> (Float,String)
@@ -103,11 +103,66 @@ bind :: (Float -> (Float,String))
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Funkcje debugowalne - bind}
+\frametitle{Bind}
 \begin{verbatim}
 bind f (x,s) =
   let (y,t) = f x in (y,s ++ t)
 \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{(*)}
+\begin{verbatim}
+(*) :: (Float -> (Float,String))
+    -> (Float -> (Float,String))
+    -> (Float -> (Float,String))
+
+f * g = \x -> bind g (f x)
+\end{verbatim}
+\end{frame}
+
+\begin{frame}{A identyczność?}
+    \begin{itemize}
+        \item \texttt{id x = x}
+        \item Miła własność: \texttt{f . id = id . f = f}.
+        \item Co jest odpowiednikiem \texttt{id} w przypadku
+            funkcji debugowalnych?
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Unit}
+    \texttt{unit :: Float -> (Float,String)\\
+    unit x = (x,"")}
+\end{frame}
+
+\begin{frame}{Unit - przykład dowodu}
+    \texttt{(f * unit) x\\
+        = bind f (unit x)\\
+        = bind f (x, "")\\
+        = let (y,s) = f x in (y,""++s)\\
+        = let (y,s) = f x in (y, s)\\
+        = f x
+    }
+\end{frame}
+
+\begin{frame}{Kolejna własność kompozycji}
+    \begin{itemize}
+        \item Kompozycja funkcji jest łączna:
+        \item \texttt{f . (g . h) = (f . g) . h}
+        \item Spodziewamy się tego również w przypadku funckji debugowalnych.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Łączność (*)}
+    \begin{itemize}
+        \item \texttt{f * (g * h) = (f * g) * h}
+        \pause
+        \item Pozostawiamy dowód jako ćwiczenie.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Checkpoint}
+    Pierwsza monada za nami!
 \end{frame}
 
 \end{document}
