@@ -299,8 +299,43 @@ instance Functor Maybe where
     \begin{itemize}
         \item Typ \texttt{m} będący funktorem.
         \item Funkcji \texttt{unit :: a -> m a}.
-        \item Funkcji \texttt{bind :: (a -> m b) -> m a -> mb}.
+        \item Funkcji\\
+            \texttt{bind :: (a -> m b) -> m a -> m b}.
+        \pause
+        \item (W Haskellu nazywają się one trochę inaczej).
     \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Klasa Monad w Haskellu}
+\begin{verbatim}
+class Monad m where
+    -- unit zwany return'em
+    return :: a -> m a
+
+    -- bind zwany (>>=)
+    (>>=) :: m a -> (a -> m b) -> m b
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Writer Monad}
+\begin{verbatim}
+data Writer a = (a, String) deriving Functor
+instance Monad Writer where
+    return x = (x,"")
+    (x,s) >>= f = let (y,t) = f x
+                  in (y,s++t)
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{List Monad}
+\begin{verbatim}
+instance Monad [] where
+    return x = [x]
+    (>>=) = flip concatMap
+\end{verbatim}
 \end{frame}
 
 \end{document}
