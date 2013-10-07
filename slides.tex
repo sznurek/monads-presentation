@@ -7,8 +7,7 @@
 \usefonttheme{professionalfonts}
 \setbeamertemplate{navigation symbols}{}
 
-\title{Monady}
-\subtitle{Krótki wstęp}
+\title{Monady w programowaniu funkcyjnym}
 \author{Łukasz Dąbek}
 
 \begin{document}
@@ -186,6 +185,16 @@ lift f * lift g = lift (f . g)
 \end{verbatim}
 \end{frame}
 
+\begin{frame}{Małe podsumowanie}
+    \begin{itemize}
+        \item \texttt{type Dbg a = (a,String)}
+        \item \texttt{f, g::Float -> Float}
+        \item \texttt{f', g'::Float -> Dbg Float}
+        \item \texttt{bind::(a -> Dbg b) -> Dbg a -> Dbg b}
+        \item \texttt{unit::a -> Dbg a}
+    \end{itemize}
+\end{frame}
+
 \begin{frame}{Checkpoint}
     \begin{itemize}
         \item Pierwsza monada za nami!
@@ -194,6 +203,61 @@ lift f * lift g = lift (f . g)
         \pause
         \item Pytania?
     \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Funkcje wielowartościowe}
+    Pierwiastek kwadratowy (sześcienny) z dodatniej liczby rzeczywistej
+    jest funkcją jednowartościową.
+\end{frame}
+
+\begin{frame}{Funkcje wielowartościowe}
+    \texttt{sqrt, cbrt :: Float -> Float}
+    \pause
+
+    \texttt{sixthRoot = sqrt . cbrt}
+\end{frame}
+
+\begin{frame}{Funkcje wielowartościowe}
+    W przypadku liczb zespolonych każda niezerowa liczba ma n pierwiastków
+    n-tego stopnia.
+\end{frame}
+
+\begin{frame}{Funkcje wielowartościowe}
+    \texttt{sqrt', cbrt' :: Complex -> [Complex]}
+\end{frame}
+
+\begin{frame}{Kompozycja}
+    \begin{itemize}
+        \item Chcemy złożyć funkcje \texttt{sqrt'} i \texttt{cbrt'}.
+        \item Problem: \texttt{sqrt'} nie przyjmuje listy!
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Kompozycja}
+    \texttt{sixthRoot x = concatMap sqrt' (cbrt' x)}
+
+    \texttt{concatMap :: (a -> [b]) -> [a] -> [b]\\
+    concatMap = concat . map}
+\end{frame}
+
+\begin{frame}{Bind}
+    \begin{itemize}
+        \item \texttt{bind$_d$::(a -> Dbg b) -> Dbg a -> Dbg b}
+        \item \texttt{concatMap::(a -> [b]) -> [a] -> [b]}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Monada listowa}
+    \begin{itemize}
+        \item \texttt{type Mv a = [a]}
+        \item \texttt{bind$_m$ = concatMap}
+        \item \texttt{unit$_m$ x = [x]}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Monady ogólnie}
+    Widzieliśmy przykłady, teraz będzie bardziej abstrakcyjnie.
 \end{frame}
 
 \end{document}
