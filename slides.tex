@@ -260,11 +260,46 @@ lift f * lift g = lift (f . g)
 
 \begin{frame}{Monady ogólnie}
     Widzieliśmy przykłady, teraz będzie bardziej abstrakcyjnie.
+    Jednak najpierw - funktory.
 \end{frame}
 
-\begin{Functor}
+\begin{frame}{Funktory}
     \begin{itemize}
-        \item Typ danych będący ,,polimorficznym kontenerem``.
+        \item Typ danych będący ,,polimorficznym kontenerem''.
+        \item Przykładowo: \texttt{Maybe}, \texttt{List}, \texttt{Either}.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Funktory}
+\begin{verbatim}
+class Functor f where
+    fmap :: (a -> b) -> (f a -> f b)
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Lista jako funktor}
+\begin{verbatim}
+instance Functor ([]) where
+    fmap = map
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Maybe jako funktor}
+\begin{verbatim}
+instance Functor Maybe where
+    fmap (Just x) = Just (f x)
+    fmap Nothing  = Nothing
+\end{verbatim}
+\end{frame}
+
+\begin{frame}{Z czego składa się monada?}
+    \begin{itemize}
+        \item Typ \texttt{m} będący funktorem.
+        \item Funkcji \texttt{unit :: a -> m a}.
+        \item Funkcji \texttt{bind :: (a -> m b) -> m a -> mb}.
     \end{itemize}
 \end{frame}
 
