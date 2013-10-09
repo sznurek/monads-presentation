@@ -338,4 +338,112 @@ instance Monad [] where
 \end{verbatim}
 \end{frame}
 
+\begin{frame}[fragile]
+\frametitle{List Monad}
+\begin{verbatim}
+solutions = [1..5] >>= \x ->
+            [1..5] >>= \y ->
+            if x * y `mod` 3 == 0
+              then return (x,y)
+              else []
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{List Monad}
+\begin{verbatim}
+solutions = do
+    x <- [1..5]
+    y <- [1..5]
+    if x * y `mod` 3 == 0
+      then return (x,y)
+      else []
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Maybe Monad}
+\begin{verbatim}
+data Maybe a = Just a | Nothing
+instance Monad Maybe where
+    return = Just
+    Just a  >>= f = f a
+    Nothing >>= _ = Nothing
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Maybe Monad}
+\begin{verbatim}
+father :: Person -> Maybe Person
+grandgrandfather x =
+  case father x of
+    Nothing -> Nothing
+    Just f1 -> case father f1 of
+      Nothing -> Nothing
+      Just f2 -> ...
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Maybe Monad}
+\begin{verbatim}
+(>>= father) :: Maybe Person -> Maybe Person
+grandgrandfather x =
+  father x  >>= \f1 ->
+  father f1 >>= \f2 ->
+  father f2 >>= return
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Maybe Monad}
+\begin{verbatim}
+grandgrandfather x = do
+  f1 <- father x
+  f2 <- father f1
+  father f2
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Maybe Monad}
+\begin{verbatim}
+(>=>) :: (a -> m b)
+      -> (b -> m c)
+      -> (a -> m c)
+
+f >=> g = \a -> f a >>= g
+
+grandgrandfather =
+    father >=> father >=> father
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Maybe Monad}
+\begin{verbatim}
+nFather :: Int -> Person -> Maybe Person
+nFather n = foldr1 (>=>) (repeat n father)
+\end{verbatim}
+\end{frame}
+
+\begin{frame}{Monoid w kategorii...}
+    \begin{itemize}
+        \item \texttt{>=>} składa funkcje monadyczne.
+        \item Można zdefiniować go w terminach \texttt{>>=}.
+        \item \texttt{f >=> g = \char`\\x -> f x >>= g}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Prawa monadyczne}
+    \begin{itemize}
+        \item \texttt{return >=> f = f}
+        \item \texttt{f >=> return = f}
+        \item \texttt{a >=> (b >=> c) = (a >=> b) >=> c}
+        \pause
+        \item Monoid! Operacja łączna z elementem neutralnym.
+    \end{itemize}
+\end{frame}
+
 \end{document}
