@@ -446,4 +446,13 @@ nFather n = foldr1 (>=>) (repeat n father)
     \end{itemize}
 \end{frame}
 
+\begin{frame}{Prawa monadyczne inaczej}
+    \begin{itemize}
+        \item \texttt{m >>= return = m}
+        \item \texttt{return x >>= f = f x}
+        \item \texttt{(a >>= b) >>= c =\\
+            a >>= (\char`\\x -> b x >>= c)}
+    \end{itemize}
+\end{frame}
+
 \end{document}
