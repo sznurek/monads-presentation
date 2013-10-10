@@ -27,19 +27,10 @@
         A monad is just a monoid in the category of endofuctors,
         what's the problem?
         \vskip5mm
-        \hspace*\fill{\small--- Philip Wadler \pause (coż, nie do końca)} 
+        \hspace*\fill{\small--- Philip Wadler} 
     \end{quote}
 \end{frame}
 
-
-\begin{frame}{I Ty możesz odkryć monady}
-    \begin{itemize}
-        \item Standardowa metoda: abstrakcyjne coś $\rightarrow$ zastosowania.
-        \pause
-        \item Dzisiejsza metoda: zastosowania $\rightarrow$ abstrakcyjne coś.
-        \item (Podziękowania dla Dana Piponiego)
-    \end{itemize}
-\end{frame}
 
 \begin{frame}{Funkcje debugowalne}
     \begin{itemize}
@@ -106,6 +97,8 @@ bind :: (Float -> (Float,String))
 \begin{verbatim}
 bind f (x,s) =
   let (y,t) = f x in (y,s ++ t)
+
+comp = bind f . g
 \end{verbatim}
 \end{frame}
 
@@ -195,16 +188,6 @@ lift f * lift g = lift (f . g)
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Checkpoint}
-    \begin{itemize}
-        \item Pierwsza monada za nami!
-        \item Znana jako \texttt{Writer monad} (patrz: \texttt{Control.Monad.Writer}).
-        \item Jeszcze do niej wrócimy.
-        \pause
-        \item Pytania?
-    \end{itemize}
-\end{frame}
-
 
 \begin{frame}{Funkcje wielowartościowe}
     Pierwiastek kwadratowy (sześcienny) z dodatniej liczby rzeczywistej
@@ -245,6 +228,7 @@ lift f * lift g = lift (f . g)
     \begin{itemize}
         \item \texttt{bind$_d$::(a -> Dbg b) -> Dbg a -> Dbg b}
         \item \texttt{concatMap::(a -> [b]) -> [a] -> [b]}
+        \item \texttt{bind$_m$ = concatMap}
     \end{itemize}
 \end{frame}
 
@@ -279,6 +263,14 @@ class Functor f where
 \end{frame}
 
 \begin{frame}[fragile]
+\frametitle{Funktory - prawa}
+\begin{verbatim}
+fmap id = id
+fmap (f . g) = fmap f . fmap g
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
 \frametitle{Lista jako funktor}
 \begin{verbatim}
 instance Functor ([]) where
@@ -292,6 +284,37 @@ instance Functor ([]) where
 instance Functor Maybe where
     fmap (Just x) = Just (f x)
     fmap Nothing  = Nothing
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Para jako funktor}
+\begin{verbatim}
+instance Functor (a,) where
+    fmap (a,x) = (a,f x)
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Either jako funktor}
+\begin{verbatim}
+instance Functor (Either a) where
+    fmap (Left a) = Left a
+    fmap (Right b) = Right (f b)
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Dwa nietypowe funktory}
+\begin{verbatim}
+data Identity a = I a
+data Const x a = C x
+
+instance Functor Identity where
+    fmap (I a) = I (f a)
+
+instance Functor (Const a) where
+    fmap (Const a) = Const a
 \end{verbatim}
 \end{frame}
 
@@ -321,7 +344,7 @@ class Monad m where
 \begin{frame}[fragile]
 \frametitle{Writer Monad}
 \begin{verbatim}
-data Writer a = (a, String) deriving Functor
+data Writer a = (a, String)
 instance Monad Writer where
     return x = (x,"")
     (x,s) >>= f = let (y,t) = f x
@@ -443,6 +466,7 @@ nFather n = foldr1 (>=>) (repeat n father)
         \item \texttt{a >=> (b >=> c) = (a >=> b) >=> c}
         \pause
         \item Monoid! Operacja łączna z elementem neutralnym.
+        \item (\texttt{g :: Functor f => a -> f b} nazywamy endofunktorem)
     \end{itemize}
 \end{frame}
 
@@ -453,6 +477,145 @@ nFather n = foldr1 (>=>) (repeat n father)
         \item \texttt{(a >>= b) >>= c =\\
             a >>= (\char`\\x -> b x >>= c)}
     \end{itemize}
+\end{frame}
+
+\begin{frame}{Więcej przykładów}
+    Obejrzymy jeszcze kilka przykładów monad i typowych zastosowań.
+
+    Następnie opowiemy o zastosowaniach mniej typowych.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Either Monad}
+\begin{verbatim}
+data Either a b = Left a | Right b
+instance Monad (Either a) where
+    return = Right
+    Left a  >>= _ = Left a
+    Right b >>= f = f b
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Either Monad}
+\begin{verbatim}
+catch :: Either a b
+      -> (b -> Either a b)
+      -> Either a b
+
+catch (Left a) handler = handler a
+catch (Right b) _ = Right b
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Either Monad}
+\begin{verbatim}
+integrate :: Either String Float
+solution :: Either String String
+solution = 
+  (integrate >>= 
+    (\f -> return $ "Result: " ++ show f))
+  `catch`
+  (\s -> return $ "Error: " ++ s)
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{State Monad}
+\begin{verbatim}
+data State s a = State (s -> (a,s))
+instance Monad (State s) where
+    return x = \s -> (x,s)
+    (State f) >>= g = \s ->
+      let (a,s')   = f s
+          State g' = g a
+      in g' s'
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{State Monad}
+\begin{verbatim}
+runState (State f) s = f s
+get :: State s s
+get = State $ \s -> (s,s)
+
+set :: s -> State s ()
+set s = State $ \_ -> ((),s)
+
+inc :: State Int ()
+inc = do
+    s <- get
+    set (s + 1)
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{State Monad}
+\begin{verbatim}
+getRandom :: State Seed Int
+getRandom = do
+    seed <- get
+    let (n, seed') = fromSeed seed
+    set seed'
+    return n
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{State Monad}
+\begin{verbatim}
+getOne :: [a] -> State Seed a
+getOne xs = do
+    rand <- getRandom
+    return xs !! (rand `mod` length xs)
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{State Monad}
+\begin{verbatim}
+example :: State Seed Int
+example = do
+    a <- getOne [0..10]
+    b <- getOne [0..10]
+    c <- getOne [0..10]
+    return (a + b + c)
+
+runState example initialSeed
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{State Monad}
+\begin{verbatim}
+nCoins :: Int -> State Seed Int
+nCoins n = fmap sum $ sequence 
+             (replicate n (getOne [0,1]))
+
+sequence :: Monad m => [m a] -> m [a]
+sequence [] = []
+sequence (m:ms) = do
+    x <- m
+    xs <- sequence ms
+    return (x:xs)
+\end{verbatim}
+\end{frame}
+
+\begin{frame}{Podstawowe monady - podsumowanie}
+    \begin{itemize}
+        \item Monady to ,,design pattern'' programowania funkcyjnego.
+        \item Pozwalają operować na jednym z elementów pudełka (funktora) bez
+            znajomości jego struktury (\texttt{>>=}).
+        \item Pozwalają na modelowanie efektów w czystym języku funkcyjnym (np. stanu).
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Tablica}
+    Reszta klasycznie - na tablicy.
+
+    W międzyczasie: pytania?
 \end{frame}
 
 \end{document}
