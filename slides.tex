@@ -45,18 +45,22 @@
     \texttt{f, g :: Float -> Float}
     \pause
 
-    \texttt{f x = x * 4}
+    \texttt{f x = x + 4}
 
-    \texttt{g x = x + 2}
+    \texttt{g x = x * 2}
+
+    \texttt{(f . g) 19 = 42}
 \end{frame}
 
 \begin{frame}{Funkcje debugowalne}
     \texttt{f', g' :: Float -> (Float, \emph{String})}
     \pause
 
-    \texttt{f' x = (x * 4, "f was called")}
+    \texttt{f' x = (x + 4, "f was called")}
 
-    \texttt{g' x = (x + 2, "g " ++ show x)}
+    \texttt{g' x = (x * 2, "g " ++ show x)}
+
+    \texttt{g' . f' -- błąd typów!}
 \end{frame}
 
 \begin{frame}{Kompozycja}
@@ -103,79 +107,32 @@ comp = bind f . g
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{(*)}
+\frametitle{Unit}
 \begin{verbatim}
-(*) :: (Float -> (Float,String))
-    -> (Float -> (Float,String))
-    -> (Float -> (Float,String))
-
-f * g = \x -> bind g (f x)
+unit :: Float -> (Float,String)
+unit x = (x,"")
 \end{verbatim}
-\pause
-
-\texttt{f . g = \char`\\x -> g (f x)}
 \end{frame}
 
-\begin{frame}{A identyczność?}
-    \begin{itemize}
-        \item \texttt{id x = x}
-        \item Miła własność: \texttt{f . id = id . f = f}.
-        \item Co jest odpowiednikiem \texttt{id} w przypadku
-            funkcji debugowalnych?
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Unit}
-    \texttt{unit :: Float -> (Float,String)\\
-    unit x = (x,"")}
-\end{frame}
-
-\begin{frame}{Unit - przykład dowodu}
-    \texttt{(f * unit) x\\
-        = bind f (unit x)\\
-        = bind f (x, "")\\
-        = let (y,s) = f x in (y,""++s)\\
-        = let (y,s) = f x in (y, s)\\
-        = f x
-    }
-\end{frame}
-
-\begin{frame}{Kolejna własność kompozycji}
-    \begin{itemize}
-        \item Kompozycja funkcji jest łączna:
-        \item \texttt{f . (g . h) = (f . g) . h}
-        \item Spodziewamy się tego również w przypadku funckji debugowalnych.
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Łączność (*)}
-    \begin{itemize}
-        \item \texttt{f * (g * h) = (f * g) * h}
-        \pause
-        \item Pozostawiamy dowód jako ćwiczenie.
-    \end{itemize}
+\begin{frame}[fragile]
+\frametitle{Unit - przykład dowodu}
+\begin{verbatim}
+bind unit (a, s)
+= bind (\x -> (x,"")) (a,s)
+= let (y,t) = (\x -> (x,"")) in (y,s++t)
+= (a, s ++ "")
+= (a, s)
+\end{verbatim}
 \end{frame}
 
 \begin{frame}{Funkcje niedebugowalne}
     \begin{itemize}
         \item Jak składać funkcje debugowalne ze zwykłymi?
         \item \texttt{f  :: Float -> Float}
-        \item \texttt{g' :: Float -> (Float,String)}
+        \item \texttt{lift f :: Float -> (Float,String)}
         \pause
-        \item \texttt{unit . f :: Float -> (Float,String)}
-        \item \texttt{unit . f * g'}
+        \item \texttt{lift f = unit . f}
     \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Lift}
-\begin{verbatim}
-lift :: (Float -> Float)
-     -> (Float -> (Float,String))
-lift f = unit . f
-
-lift f * lift g = lift (f . g)
-\end{verbatim}
 \end{frame}
 
 \begin{frame}{Małe podsumowanie}
@@ -239,8 +196,6 @@ lift f * lift g = lift (f . g)
         \item \texttt{unit$_m$ x = [x]}
     \end{itemize}
 \end{frame}
-
-%TODO: trochę więcej o monadzie listowej
 
 \begin{frame}{Monady ogólnie}
     Widzieliśmy przykłady, teraz będzie bardziej abstrakcyjnie.
@@ -411,7 +366,6 @@ grandgrandfather x =
 \begin{frame}[fragile]
 \frametitle{Maybe Monad}
 \begin{verbatim}
-(>>= father) :: Maybe Person -> Maybe Person
 grandgrandfather x =
   father x  >>= \f1 ->
   father f1 >>= \f2 ->
@@ -513,6 +467,7 @@ catch (Right b) _ = Right b
 \begin{verbatim}
 integrate :: Either String Float
 solution :: Either String String
+
 solution = 
   (integrate >>= 
     (\f -> return $ "Result: " ++ show f))
@@ -525,6 +480,7 @@ solution =
 \frametitle{State Monad}
 \begin{verbatim}
 data State s a = State (s -> (a,s))
+
 instance Monad (State s) where
     return x = \s -> (x,s)
     (State f) >>= g = \s ->
@@ -616,6 +572,14 @@ sequence (m:ms) = do
     Reszta klasycznie - na tablicy.
 
     W międzyczasie: pytania?
+\end{frame}
+
+\begin{frame}
+    NULL
+\end{frame}
+
+\begin{frame}
+    To juz koniec. Dziękuję.
 \end{frame}
 
 \end{document}
