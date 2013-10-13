@@ -237,8 +237,8 @@ instance Functor ([]) where
 \frametitle{Maybe jako funktor}
 \begin{verbatim}
 instance Functor Maybe where
-    fmap (Just x) = Just (f x)
-    fmap Nothing  = Nothing
+    fmap f (Just x) = Just (f x)
+    fmap f Nothing  = Nothing
 \end{verbatim}
 \end{frame}
 
@@ -246,7 +246,7 @@ instance Functor Maybe where
 \frametitle{Para jako funktor}
 \begin{verbatim}
 instance Functor (a,) where
-    fmap (a,x) = (a,f x)
+    fmap f (a,x) = (a,f x)
 \end{verbatim}
 \end{frame}
 
@@ -254,8 +254,8 @@ instance Functor (a,) where
 \frametitle{Either jako funktor}
 \begin{verbatim}
 instance Functor (Either a) where
-    fmap (Left a) = Left a
-    fmap (Right b) = Right (f b)
+    fmap f (Left a) = Left a
+    fmap f (Right b) = Right (f b)
 \end{verbatim}
 \end{frame}
 
@@ -266,10 +266,10 @@ data Identity a = I a
 data Const x a = C x
 
 instance Functor Identity where
-    fmap (I a) = I (f a)
+    fmap f (I a) = I (f a)
 
 instance Functor (Const a) where
-    fmap (Const a) = Const a
+    fmap _ (Const a) = Const a
 \end{verbatim}
 \end{frame}
 
