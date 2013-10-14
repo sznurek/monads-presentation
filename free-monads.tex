@@ -1,0 +1,93 @@
+\documentclass{article}[12pt]
+
+\usepackage[utf8]{inputenc}
+\usepackage{polski}
+\usepackage[hidelinks]{hyperref}
+
+\title{Krótko o wolnych monadach}
+\author{Łukasz Dąbek}
+\date{\today}
+
+\begin{document}
+\maketitle
+Aby z funktora \texttt{m} uczynić monadę należy napisać parę funkcji:
+\begin{itemize}
+    \item \texttt{return :: a -> m a},
+    \item \texttt{(>>=) :: m a -> (a -> m b) -> m b}.
+\end{itemize}
+Korzystając z faktu, że mamy do dyspozycji funkcję \texttt{fmap} możemy
+równoważnie napisać inną parę funkcji:
+\begin{itemize}
+    \item \texttt{return :: a -> m a},
+    \item \texttt{join :: m (m a) -> m a}.
+\end{itemize}
+Wolna monada to taka monada, która wykonuje minimalną pracę przy \texttt{join}ie.
+
+Zaczniemy od definicji typu danych. Dla dowolnego funktora \texttt{f} definiujemy:
+\begin{verbatim}
+data Free f a = Pure a | Free (f (Free f a))
+\end{verbatim}
+W ramach rozgrzewki możemy napisać instancję funktora:
+\begin{verbatim}
+instance Functor f => Functor (Free f) where
+    fmap f (Pure a) = Pure (f a)
+    fmap f (Free c) = Free (fmap (fmap f) c)
+\end{verbatim}
+
+Zanim przejdziemy do implementacji interfejsu monadycznego rozważmy ,,kształt''
+danych typu \texttt{Free f a} dla przykładowych funktorów:
+\begin{itemize}
+    \item \texttt{f = Maybe}: w tym wypadku struktura wygląda jak lista ,,bez danych'' na ,,consach''.
+    \item \texttt{f = []}: w tym wypadku struktura wygląda jak drzewo.
+    \item \texttt{f = (a,)}: w tym wypadku struktura wygląda jak regularna lista.
+\end{itemize}
+
+Z powyższych obserwacji możemy opisać kształt typu \texttt{Free f a} na potrzeby
+naszych intuicji:
+\begin{quotation}
+Wolna monada nad funktorem f jest drzewem, które zawiera dane typu polimorficznego w
+liściach i w każdym wierzchołku wewnętrznym zawiera pojemnik (funktor) dzieci.
+\end{quotation}
+Przykładowo struktura typu \texttt{Free [] Int} jest drzewem przechowującym
+w liściach liczby całkowite.
+
+Uzbrojeni w nowe intuicje możemy zinterpretować typ funkcji \texttt{join} dla
+wolnych monad: jest to funkcja, która przetwarza drzewo drzew na normalne drzewo.
+Jak to robi? Podczepiając w miejsce liści wspomniane drzewa!
+
+Zobaczmy implementację interfejsu monadycznego dla wolnych monad:
+\begin{verbatim}
+instance Functor f => Monad (Free f) where
+    return = Pure
+    join (Pure a) = a
+    join (Free c) = Free (fmap join c)
+\end{verbatim}
+
+Zauważmy, że przy implementacji funkcji \texttt{join} tylko pierwsze równanie
+wykonuje jakąkolwiek realną pracę: drugie równanie wywołuje funkcję \texttt{join}
+na swoich dzieciach.
+
+Możemy jeszcze zinterpretować typ funkcji \texttt{(>>=)} w terminach drzew. Przypomnijmy
+ten typ: \texttt{Free f a -> (a -> Free f b) -> Free f b}. Przekładając na język drzew:
+funkcja \texttt{bind} bierze drzewo z liśćmi typu \texttt{a} i produkuje drzewo z liśćmi
+typu \texttt{b}. Robi to przy pomocy funkcji podanej w drugim argumencie: jest to funkcja,
+która dla każdego z liści wstawia na jego miejsce nowe drzewo.
+
+Piotrek Polesiuk i Wojtek Jedynak wspomnieli mi, że wolne monady wyglądają bardzo podobnie
+do monady podstawiającej zmienne. Faktycznie tak jest, a po szczegóły odsyłam do Dana
+Piponiego\cite{subst}.
+
+Więcej o wolnych monadach można poczytać na blogu Gabriela Gonzalesa\cite{free}.
+
+\begin{thebibliography}{9}
+    \bibitem{free}
+        Gabriel Gonzalez,
+        \emph{Why free monads matter}.
+        \url{http://www.haskellforall.com/2012/06/you-could-have-invented-free-monads.html}.
+    \bibitem{subst}
+        Dan Piponi,
+        \emph{Variable substitution gives a...}.
+        \url{http://blog.sigfpe.com/2006/11/variable-substitution-gives.html}.
+\end{thebibliography}
+
+\end{document}

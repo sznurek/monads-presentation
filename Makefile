@@ -1,3 +1,6 @@
+free-monads.pdf : free-monads.tex
+	pdflatex free-monads.tex && pdflatex free-monads.tex
+
 problems.pdf : problems.tex
 	pdflatex problems.tex && pdflatex problems.tex
 
