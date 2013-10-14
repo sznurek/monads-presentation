@@ -1,0 +1,127 @@
+\documentclass{article}[12pt]
+
+\usepackage[utf8]{inputenc}
+\usepackage{polski}
+
+\title{Zadania do prezentacji o monadach}
+\author{Łukasz Dąbek}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+Rozwiązania poniższych zadań należy wysłać na adres \texttt{sznurek@gmail.com}
+do dnia \date{17.11.2013 r.} Na podany adres mailowy można również przesyłać
+wszelkie pytania dotyczące zadań bądź prezentacji.
+
+\section{Zadanie 1 - monadyczny interpreter}
+\subsection{Treść zadania}
+Zadanie składa się z dwóch części: napisaniu interpretera języka
+\textsc{While} w stylu monadycznym a następnie rozszerzeniu go o instrukcję
+\texttt{abort} oraz niedeterminizm.
+
+Załóżmy, że mamy daną kategorię gramatyczną dla liczb naturalnych \texttt{<nat>}
+oraz zmiennych \texttt{<var>}. Gramatyka języka \textsc{While} bez wspomnianych
+wyżej rozszerzeń jest następująca:
+\begin{verbatim}
+<a-op>   ::= + | - | *
+<b-op>   ::= and | or
+<a-expr> ::= <nat> | <var> | <a-expr> <a-op> <a-expr>
+<b-expr> ::= true | false | not <b-expr> | <b-expr> <b-op> <b-expr>
+
+<stmt>   ::= skip | <var> := <a-expr> | <stmt>; <stmt> |
+             if <b-expr> then <stmt> else <stmt> |
+             while <b-expr> <stmt>
+\end{verbatim}
+
+Dla wyrażeń arytmetycznych i boolowskich należy napisać dwie
+funkcje interpretujące:
+\begin{verbatim}
+evalA :: (Var -> Integer) -> Aexp -> Integer
+evalB :: (Var -> Integer) -> Bexp -> Integer
+\end{verbatim}
+
+Dla instrukcji należy napisać interpreter w stylu monadycznym i przetestować
+go dla monady identycznościowej:
+\begin{verbatim}
+eval :: Monad m => (Var -> Integer) -> Stmt -> m (Var -> Integer)
+eval env Skip = return env
+...
+\end{verbatim}
+
+Kolejnym krokiem jest rozszerzenie języka \textsc{While} o dwie instrukcje:
+\begin{verbatim}
+<stml> ::= (...) | abort <a-expr> | amb <stmt> <stmt>
+\end{verbatim}
+Intuicyjnie instrukcja \texttt{abort n} powinna przerwać działanie programu
+z kodem błędu równym wartości wyrażenia \texttt{n}. Instrukcja \texttt{amb}
+niedeterministycznie wybiera jedną z gałęzi obliczeń.
+
+Aby zamodelować wspomniane efekty należy:
+\begin{enumerate}
+    \item Zdefiniować polimorficzny typ danych \texttt{M} (podpowiedź: powinien
+        być kombinacją \texttt{Either} i listy).
+    \item Dla typu \texttt{M} zdefiniować instancję \texttt{Functor} i \texttt{Monad}.
+    \item Rozszerzyć wcześniej napisany interpreter o obsługę nowych instrukcji.
+\end{enumerate}
+
+\subsection{Ocenianie}
+Rozwiązanie powinno składać się z dwóch osobnych plików źródłowych (po jednym
+dla każdej części zadania). Na ocenę zadania składają się następujące kryteria,
+w kolejności malejącego znaczenia:
+\begin{enumerate}
+    \item Wykonanie polecenia (tzn. interpretery napisane w innym stylu niż
+        monadyczny nie będą oceniane).
+    \item Poprawność interpertera względem semantyki poznanej na przedmiocie
+        Programowanie M.
+    \item Styl i czytelność kodu.
+\end{enumerate}
+
+\section{Zadanie 2 - monadyczny odkrywca}
+\subsection{Treść zadania}
+W poprzednim zadaniu szukaliśmy monady dla konkretnego zastosowania. Teraz
+zrobimy odwrotnie: poszukamy instancji monady i zastosowania dla podanego
+typu danych.
+
+Zdefiniujmy nowy typ danych:
+\begin{verbatim}
+data Sel r a = Sel ((a -> r) -> a)
+\end{verbatim}
+
+Aby wykonać zadanie należy:
+\begin{enumerate}
+    \item Zdefiniować instancję klasy typów \texttt{Functor} dla typu \texttt{Sel}.
+        Upewnij się, że Twoja definicja spełnia odpowiednie prawa.
+    \item Zdefiniować instację klasy typów \texttt{Monad} dla typu \texttt{Sel}.
+        Ponownie, upewnij się, że Twoja implementacja spełnia prawa monadyczne.
+        \footnote{W przeciwnym przypadku do Twoich drzwi może zapukać Międzygwiezdna
+        Policja Monadyczna.}
+    \item (Najważniejsze i najtrudniejsze) Znaleźć zastosowanie dla właśnie zdefiniowanej
+        monady.
+\end{enumerate}
+
+Ponieważ ostatni krok jest trudny i niedospecyfikowany poniżej znajduje się kilka
+wskazówek:
+\begin{enumerate}
+    \item Nazwa typu danych została wybrana nieprzypadkowo.
+    \item Rozważ przypadki, gdy \texttt{r = Bool} i \texttt{r = Int}. Następnie
+        postaraj się zinterpretować typ \texttt{a -> Bool} jako predykat i
+        \texttt{a -> Int} jako funkcję oceny.
+    \item Monada \texttt{Sel} ma związek z monadą kontynuacyjną (widzisz podobieństwo
+        typów?).
+    \item Monada \texttt{Sel} może pomóc napisać Ci algorytm brutalny albo wygrać
+        w Nima!
+    \item Wspomóż się haskellową notacją \texttt{do} aby wyrobić sobie intuicje.
+\end{enumerate}
+
+\subsection{Ocenianie}
+Na ocenę zadania składa się (z równą wagą):
+\begin{enumerate}
+    \item Napisanie poprawnych instancji klas \texttt{Functor} i \texttt{Monad}
+        dla typu \texttt{Sel}.
+    \item Znalezienie zastosowania dla odkrytej monady i zilustrowanie tego
+        krótkim przykładem.
+\end{enumerate}
+Przewidziane są bonusowe punkty za styl.
+
+\end{document}

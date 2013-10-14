@@ -1,3 +1,6 @@
+problems.pdf : problems.tex
+	pdflatex problems.tex && pdflatex problems.tex
+
 slides.pdf : slides.tex
 	pdflatex slides.tex
 
