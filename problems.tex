@@ -2,6 +2,7 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage{polski}
+\usepackage[hidelinks]{hyperref}
 
 \title{Zadania do prezentacji o monadach}
 \author{Łukasz Dąbek}
@@ -10,14 +11,14 @@
 \begin{document}
 \maketitle
 
-Rozwiązania poniższych zadań należy wysłać na adres \texttt{sznurek@gmail.com}
-do dnia \date{17.11.2013 r.} Na podany adres mailowy można również przesyłać
-wszelkie pytania dotyczące zadań bądź prezentacji.
+Rozwiązania poniższych zadań należy wysłać na adres \href{mailto:sznurek@gmail.com}{sznurek@gmail.com}
+do dnia \date{17.11.2013 r.} Na podany adres mailowy można przesyłać
+pytania dotyczące zadań bądź prezentacji.
 
 \section{Zadanie 1 - monadyczny interpreter}
 \subsection{Treść zadania}
 Zadanie składa się z dwóch części: napisaniu interpretera języka
-\textsc{While} w stylu monadycznym a następnie rozszerzeniu go o instrukcję
+\textsc{While} w stylu monadycznym\cite{essence} i rozszerzeniu go o instrukcję
 \texttt{abort} oraz niedeterminizm.
 
 Załóżmy, że mamy daną kategorię gramatyczną dla liczb naturalnych \texttt{<nat>}
@@ -26,33 +27,50 @@ wyżej rozszerzeń jest następująca:
 \begin{verbatim}
 <a-op>   ::= + | - | *
 <b-op>   ::= and | or
+<ba-op>  ::= < | ==
 <a-expr> ::= <nat> | <var> | <a-expr> <a-op> <a-expr>
-<b-expr> ::= true | false | not <b-expr> | <b-expr> <b-op> <b-expr>
+<b-expr> ::= true | false | not <b-expr> | <b-expr> <b-op> <b-expr> |
+             <a-expr> <ba-op> <a-expr>
 
 <stmt>   ::= skip | <var> := <a-expr> | <stmt>; <stmt> |
              if <b-expr> then <stmt> else <stmt> |
-             while <b-expr> <stmt>
+             while <b-expr> do <stmt>
+\end{verbatim}
+Przykładowy program w języku \textsc{While} liczący wartość \texttt{x!} wygląda
+następująco:
+\begin{verbatim}
+y := 0;
+while 0 < x do (
+    y := y * x;
+    x := x - 1
+)
 \end{verbatim}
 
-Dla wyrażeń arytmetycznych i boolowskich należy napisać dwie
+Pamięć można reprezentować jako funkcję ze zmiennej w liczbę:
+\begin{verbatim}
+type Env = Var -> Integer
+\end{verbatim}
+
+Dla wyrażeń arytmetycznych i logicznych należy napisać dwie
 funkcje interpretujące:
 \begin{verbatim}
-evalA :: (Var -> Integer) -> Aexp -> Integer
-evalB :: (Var -> Integer) -> Bexp -> Integer
+evalA :: Env -> Aexp -> Integer
+evalB :: Env -> Bexp -> Integer
 \end{verbatim}
 
 Dla instrukcji należy napisać interpreter w stylu monadycznym i przetestować
 go dla monady identycznościowej:
 \begin{verbatim}
-eval :: Monad m => (Var -> Integer) -> Stmt -> m (Var -> Integer)
+eval :: Monad m => Env -> Stmt -> m (Var -> Integer)
 eval env Skip = return env
 ...
 \end{verbatim}
 
 Kolejnym krokiem jest rozszerzenie języka \textsc{While} o dwie instrukcje:
 \begin{verbatim}
-<stml> ::= (...) | abort <a-expr> | amb <stmt> <stmt>
+<stmt> ::= (...) | abort <a-expr> | amb <stmt> <stmt>
 \end{verbatim}
+
 Intuicyjnie instrukcja \texttt{abort n} powinna przerwać działanie programu
 z kodem błędu równym wartości wyrażenia \texttt{n}. Instrukcja \texttt{amb}
 niedeterministycznie wybiera jedną z gałęzi obliczeń.
@@ -65,6 +83,11 @@ Aby zamodelować wspomniane efekty należy:
     \item Rozszerzyć wcześniej napisany interpreter o obsługę nowych instrukcji.
 \end{enumerate}
 
+Podsumowując, ostateczny interpreter powinien mieć typ:
+\begin{verbatim}
+eval :: Env -> Stmt -> M Env
+\end{verbatim}
+
 \subsection{Ocenianie}
 Rozwiązanie powinno składać się z dwóch osobnych plików źródłowych (po jednym
 dla każdej części zadania). Na ocenę zadania składają się następujące kryteria,
@@ -72,16 +95,17 @@ w kolejności malejącego znaczenia:
 \begin{enumerate}
     \item Wykonanie polecenia (tzn. interpretery napisane w innym stylu niż
         monadyczny nie będą oceniane).
-    \item Poprawność interpertera względem semantyki poznanej na przedmiocie
+    \item Poprawność interpretera względem semantyki poznanej na przedmiocie
         Programowanie M.
+    \item Załączenie przykładowych programów w języku \textsc{While} prezentujących
+        działanie instrukcji \texttt{abort} i \texttt{amb}.
     \item Styl i czytelność kodu.
 \end{enumerate}
 
 \section{Zadanie 2 - monadyczny odkrywca}
 \subsection{Treść zadania}
-W poprzednim zadaniu szukaliśmy monady dla konkretnego zastosowania. Teraz
-zrobimy odwrotnie: poszukamy instancji monady i zastosowania dla podanego
-typu danych.
+W poprzednim zadaniu szukaliśmy monady dla konkretnego zastosowania. W tym
+zadaniu dla zadanego typu danych odkryjemy instancję monady oraz jej zastosowanie.
 
 Zdefiniujmy nowy typ danych:
 \begin{verbatim}
@@ -92,7 +116,7 @@ Aby wykonać zadanie należy:
 \begin{enumerate}
     \item Zdefiniować instancję klasy typów \texttt{Functor} dla typu \texttt{Sel}.
         Upewnij się, że Twoja definicja spełnia odpowiednie prawa.
-    \item Zdefiniować instację klasy typów \texttt{Monad} dla typu \texttt{Sel}.
+    \item Zdefiniować instancję klasy typów \texttt{Monad} dla typu \texttt{Sel}.
         Ponownie, upewnij się, że Twoja implementacja spełnia prawa monadyczne.
         \footnote{W przeciwnym przypadku do Twoich drzwi może zapukać Międzygwiezdna
         Policja Monadyczna.}
@@ -100,7 +124,7 @@ Aby wykonać zadanie należy:
         monady.
 \end{enumerate}
 
-Ponieważ ostatni krok jest trudny i niedospecyfikowany poniżej znajduje się kilka
+Ponieważ ostatni krok jest trudny i niejednoznaczny, poniżej znajduje się kilka
 wskazówek:
 \begin{enumerate}
     \item Nazwa typu danych została wybrana nieprzypadkowo.
@@ -123,5 +147,12 @@ Na ocenę zadania składa się (z równą wagą):
         krótkim przykładem.
 \end{enumerate}
 Przewidziane są bonusowe punkty za styl.
+
+\begin{thebibliography}{9}
+    \bibitem{essence}
+        Philip Wadler,
+        \emph{The essence of functional programming}.
+        Prentice Hall, 1992.
+\end{thebibliography}
 
 \end{document}
